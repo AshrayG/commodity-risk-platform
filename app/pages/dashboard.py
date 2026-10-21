@@ -208,7 +208,7 @@ with overview_tab:
         labels={"date": "Date", "daily_pnl_usd": "Daily P&L (USD)"},
     )
     fig_pnl.add_hline(y=0, line_dash="dash")
-    st.plotly_chart(fig_pnl, use_container_width=True)
+    st.plotly_chart(fig_pnl, width="stretch")
 
     st.subheader("Cumulative hypothetical P&L")
     fig_cumulative = px.line(
@@ -222,7 +222,7 @@ with overview_tab:
         },
     )
     fig_cumulative.add_hline(y=0, line_dash="dash")
-    st.plotly_chart(fig_cumulative, use_container_width=True)
+    st.plotly_chart(fig_cumulative, width="stretch")
 
     st.caption(
         "Cumulative P&L sums estimated daily P&L using constant notionals; "
@@ -282,7 +282,7 @@ with backtest_tab:
         yaxis_title="P&L (USD)",
         hovermode="x unified",
     )
-    st.plotly_chart(fig_backtest, use_container_width=True)
+    st.plotly_chart(fig_backtest, width="stretch")
 
     st.subheader("Statistical validation tests")
     diagnostic_rows = [
@@ -297,7 +297,7 @@ with backtest_tab:
         },
     ]
     diagnostics_df = pd.DataFrame(diagnostic_rows)
-    st.dataframe(diagnostics_df, use_container_width=True, hide_index=True)
+    st.dataframe(diagnostics_df, width="stretch", hide_index=True)
 
     if (
         christoffersen.get("reject_at_5_percent", False)
@@ -331,7 +331,7 @@ with backtest_tab:
     breach_table["excess_loss_usd"] = (
         -breach_table["actual_pnl_usd"] - breach_table["var_loss_usd"]
     )
-    st.dataframe(breach_table, use_container_width=True, hide_index=True)
+    st.dataframe(breach_table, width="stretch", hide_index=True)
 
     st.download_button(
         "Download backtest results CSV",
@@ -349,7 +349,7 @@ with attribution_tab:
     attribution = asset_risk_attribution(returns, positions)
     st.dataframe(
         attribution.sort_values("gross_notional_usd", ascending=False),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -363,7 +363,7 @@ with attribution_tab:
             "gross_notional_usd": "Gross notional (USD)",
         },
     )
-    st.plotly_chart(fig_exposure, use_container_width=True)
+    st.plotly_chart(fig_exposure, width="stretch")
 
     fig_var = px.bar(
         attribution,
@@ -375,7 +375,7 @@ with attribution_tab:
             "standalone_var_99_usd": "Standalone VaR (USD)",
         },
     )
-    st.plotly_chart(fig_var, use_container_width=True)
+    st.plotly_chart(fig_var, width="stretch")
 
     st.subheader("Historical return correlations")
     correlations = correlation_matrix(returns.loc[:, list(positions)])
@@ -388,7 +388,7 @@ with attribution_tab:
         color_continuous_scale="RdBu",
         title="Correlation of aligned daily returns",
     )
-    st.plotly_chart(fig_corr, use_container_width=True)
+    st.plotly_chart(fig_corr, width="stretch")
 
     st.download_button(
         "Download asset attribution CSV",
@@ -431,7 +431,7 @@ with stress_tab:
     scenario_df = pd.DataFrame(scenario_rows)
     detail_df = pd.DataFrame(detail_rows)
 
-    st.dataframe(scenario_df, use_container_width=True, hide_index=True)
+    st.dataframe(scenario_df, width="stretch", hide_index=True)
 
     fig_stress = px.bar(
         scenario_df,
@@ -444,7 +444,7 @@ with stress_tab:
         },
     )
     fig_stress.add_hline(y=0, line_dash="dash")
-    st.plotly_chart(fig_stress, use_container_width=True)
+    st.plotly_chart(fig_stress, width="stretch")
 
     st.subheader("Instrument-level stress impact")
     fig_detail = px.bar(
@@ -461,9 +461,9 @@ with stress_tab:
         },
     )
     fig_detail.add_hline(y=0, line_dash="dash")
-    st.plotly_chart(fig_detail, use_container_width=True)
+    st.plotly_chart(fig_detail, width="stretch")
 
-    st.dataframe(detail_df, use_container_width=True, hide_index=True)
+    st.dataframe(detail_df, width="stretch", hide_index=True)
 
     st.download_button(
         "Download stress scenario CSV",
@@ -496,7 +496,7 @@ with data_tab:
 
     st.dataframe(
         returns.tail(20).reset_index(),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
