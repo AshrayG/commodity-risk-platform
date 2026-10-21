@@ -1,9 +1,10 @@
-
+import argparse
 from pathlib import Path
+from typing import Optional, Sequence
 
 import pandas as pd
 
-from src.risk.risk_engine import load_returns, build_portfolio_pnl
+from src.risk.risk_engine import POSITIONS, load_returns, build_portfolio_pnl
 from src.risk.backtesting import historical_var_backtest
 from src.risk.backtest_summary import (
     summarize_backtest,
@@ -17,25 +18,43 @@ from src.risk.backtest_summary import (
 # Configuration
 # --------------------------------------------------
 
-POSITIONS = {
-    "brent_proxy": 500_000,
-    "wti_proxy": 300_000,
-    "natural_gas_proxy": 200_000,
-    "coffee_proxy": 100_000,
-    "bitcoin": 100_000,
-    "ethereum": 50_000,
-}
-
 LOOKBACK_WINDOW = 250
 CONFIDENCE_LEVEL = 0.99
 
-REPORTS_DIR = Path("reports")
+ROOT = Path(__file__).resolve().parents[2]
+REPORTS_DIR = ROOT / "reports"
 RESULTS_FILE = REPORTS_DIR / "var_backtest_results.csv"
 DIAGNOSTICS_FILE = REPORTS_DIR / "var_backtest_diagnostics.csv"
 
 
 
-def main() -> None:
+def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Run a rolling historical VaR backtest for the sample portfolio."
+        )
+    )
+    parser.add_argument(
+        "--window",
+        type=int,
+        default=LOOKBACK_WINDOW,
+        help=(
+            "Rolling history length in observations "
+            f"(default: {LOOKBACK_WINDOW})."
+        ),
+    )
+    parser.add_argument(
+        "--confidence",
+        type=float,
+        choices=(0.95, 0.99),
+        default=CONFIDENCE_LEVEL,
+        help="VaR confidence level: 0.95 or 0.99 (default: 0.99).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: Optional[Sequence[str]] = None) -> None:
+    args = parse_args(argv)
     # Load the aligned returns for all configured assets.
     returns = load_returns()
 
@@ -58,28 +77,28 @@ def main() -> None:
 
     results = historical_var_backtest(
         portfolio_pnl,
-        window=LOOKBACK_WINDOW,
-        confidence=CONFIDENCE_LEVEL,
+        window=args.window,
+        confidence=args.confidence,
     )
 
     summary = summarize_backtest(
         results,
-        confidence=CONFIDENCE_LEVEL,
+        confidence=args.confidence,
     )
 
     kupiec = kupiec_pof_test(
         results,
-        confidence=CONFIDENCE_LEVEL,
+        confidence=args.confidence,
     )
 
     christoffersen = christoffersen_independence_test(
         results,
-        confidence=CONFIDENCE_LEVEL,
+        confidence=args.confidence,
     )
 
     conditional_coverage = conditional_coverage_test(
         results,
-        confidence=CONFIDENCE_LEVEL,
+        confidence=args.confidence,
     )
 
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)

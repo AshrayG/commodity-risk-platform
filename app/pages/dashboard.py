@@ -76,7 +76,7 @@ for asset, default_value in DEFAULT_POSITIONS.items():
     )
 
 confidence = st.sidebar.selectbox(
-    "Portfolio VaR confidence",
+    "Expected Shortfall confidence",
     options=[0.95, 0.99],
     index=1,
     format_func=lambda x: f"{x:.0%}",
