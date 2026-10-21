@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 # Make imports work when Streamlit launches this file from the project root.
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
