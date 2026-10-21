@@ -25,6 +25,21 @@ def test_backtest_uses_only_prior_observations():
     assert "breach" in result.columns
 
 
+def test_backtest_uses_observed_order_statistic_for_extreme_tail():
+    pnl = pd.Series(range(-150, 151), dtype=float)
+
+    result = historical_var_backtest(
+        pnl,
+        window=100,
+        confidence=0.99,
+    )
+
+    # A 1% quantile of 100 observations should use the worst observed loss.
+    # Linear interpolation almost reaches the second-worst loss and inflates
+    # the effective out-of-sample breach probability toward 2%.
+    assert result.iloc[0]["var_loss_usd"] == pytest.approx(150.0)
+
+
 def test_higher_confidence_uses_wider_var_and_changes_breaches():
     pnl = pd.Series(([1.0] * 97 + [-200.0] * 3) * 3, dtype=float)
 

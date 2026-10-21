@@ -36,7 +36,7 @@ def historical_var_backtest(
         # Positive number representing the estimated loss threshold.
         var_loss = max(
             0.0,
-            -float(history.quantile(1 - confidence)),
+            -float(history.quantile(1 - confidence, interpolation="lower")),
         )
 
         records.append({
