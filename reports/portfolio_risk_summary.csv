@@ -1,0 +1,3 @@
+,metric,confidence,observations,var_usd,expected_shortfall_usd,asset_count,gross_notional_usd,pnl_observations,daily_pnl_volatility_usd
+0,historical_var_es,0.95,2212,39813.53194188362,62460.434280317204,6,1250000,2212,26311.56961130822
+1,historical_var_es,0.99,2212,73037.60237299488,106806.65228343495,6,1250000,2212,26311.56961130822
