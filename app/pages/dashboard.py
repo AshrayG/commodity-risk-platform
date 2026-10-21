@@ -80,6 +80,11 @@ confidence = st.sidebar.selectbox(
     options=[0.95, 0.99],
     index=1,
     format_func=lambda x: f"{x:.0%}",
+    key="portfolio_var_confidence",
+    help=(
+        "Selects the confidence used for the Expected Shortfall card. "
+        "The overview always shows both 95% and 99% Historical VaR."
+    ),
 )
 
 lookback = st.sidebar.number_input(
@@ -90,7 +95,17 @@ lookback = st.sidebar.number_input(
     step=10,
 )
 
-backtest_confidence = 0.99
+backtest_confidence = st.sidebar.selectbox(
+    "VaR backtest confidence",
+    options=[0.95, 0.99],
+    index=1,
+    format_func=lambda x: f"{x:.0%}",
+    key="backtest_confidence",
+    help=(
+        "Sets the confidence for rolling VaR thresholds, breach counts, "
+        "and statistical backtesting tests."
+    ),
+)
 
 missing = set(positions) - set(returns.columns)
 if missing:
@@ -246,7 +261,7 @@ with backtest_tab:
             x=backtest_df["date"],
             y=backtest_df["var_threshold_pnl_usd"],
             mode="lines",
-            name="99% VaR loss threshold",
+            name=f"{backtest_confidence:.0%} VaR loss threshold",
             line={"dash": "dash"},
         )
     )
