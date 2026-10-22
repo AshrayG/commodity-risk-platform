@@ -29,6 +29,12 @@ from src.risk.backtest_summary import (
     conditional_coverage_test,
 )
 
+
+def format_confidence(confidence: float) -> str:
+    """Format confidence as a percentage without an unnecessary .0."""
+    return f"{confidence * 100:g}%"
+
+
 st.set_page_config(
     page_title="Commodity Risk Platform",
     page_icon="📊",
@@ -40,10 +46,7 @@ st.caption(
     "Portfolio risk | Historical VaR | Backtesting | Risk attribution | Stress testing"
 )
 
-st.warning(
-    "Illustrative research dashboard. Positions and stress shocks are hypothetical, "
-    "not live positions or investment advice."
-)
+
 
 # -----------------------------
 # Load aligned historical data
@@ -75,17 +78,22 @@ for asset, default_value in DEFAULT_POSITIONS.items():
         key=f"position_{asset}",
     )
 
-confidence = st.sidebar.selectbox(
-    "Expected Shortfall confidence",
-    options=[0.95, 0.99],
-    index=1,
-    format_func=lambda x: f"{x:.0%}",
-    key="portfolio_var_confidence",
+confidence_percent = st.sidebar.number_input(
+    "Expected Shortfall confidence (%)",
+    min_value=90.0,
+    max_value=99.9,
+    value=99.0,
+    step=0.1,
+    format="%.1f",
+    key="expected_shortfall_confidence_percent",
     help=(
-        "Selects the confidence used for the Expected Shortfall card. "
-        "The overview always shows both 95% and 99% Historical VaR."
+        "Sets the loss-tail percentile for the Expected Shortfall card: "
+        "95% averages the worst 5% of losses, while 99% averages the worst 1%. "
+        "Very high settings use few tail observations. The overview always "
+        "shows both 95% and 99% Historical VaR."
     ),
 )
+confidence = confidence_percent / 100.0
 
 lookback = st.sidebar.number_input(
     "VaR backtest lookback (observations)",
@@ -95,21 +103,32 @@ lookback = st.sidebar.number_input(
     step=10,
 )
 
-backtest_confidence = st.sidebar.selectbox(
-    "VaR backtest confidence",
-    options=[0.95, 0.99],
-    index=1,
-    format_func=lambda x: f"{x:.0%}",
-    key="backtest_confidence",
+backtest_confidence_percent = st.sidebar.number_input(
+    "VaR backtest confidence (%)",
+    min_value=90.0,
+    max_value=99.9,
+    value=99.0,
+    step=0.1,
+    format="%.1f",
+    key="var_backtest_confidence_percent",
     help=(
         "Sets the confidence for rolling VaR thresholds, breach counts, "
-        "and statistical backtesting tests."
+        "and statistical backtesting tests. The expected breach rate is "
+        "100% minus this value. Very high settings leave few tail observations "
+        "in each rolling lookback window."
     ),
 )
+backtest_confidence = backtest_confidence_percent / 100.0
 
 missing = set(positions) - set(returns.columns)
 if missing:
     st.error(f"Missing return columns: {sorted(missing)}")
+    st.stop()
+if not any(value != 0 for value in positions.values()):
+    st.info(
+        "No active positions. Enter a non-zero notional for at least "
+        "one product to calculate portfolio risk and backtesting."
+    )
     st.stop()
 
 # -----------------------------
@@ -175,7 +194,11 @@ with overview_tab:
     st.subheader("Portfolio risk snapshot")
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Assets configured", len(positions))
+    c1.metric(
+    "Active products",
+    sum(value != 0 for value in positions.values()),
+)
+
     c2.metric("Gross notional", f"${gross_notional:,.0f}")
     c3.metric("Net notional", f"${net_notional:,.0f}")
     c4.metric("Daily P&L volatility", f"${portfolio_pnl.std():,.0f}")
@@ -184,7 +207,7 @@ with overview_tab:
     c5.metric("95% Historical VaR", f"${var_95['var_usd']:,.0f}")
     c6.metric("99% Historical VaR", f"${var_99['var_usd']:,.0f}")
     c7.metric(
-        f"{confidence:.0%} Expected Shortfall",
+        f"{format_confidence(confidence)} Expected Shortfall",
         f"${portfolio_risk['expected_shortfall_usd']:,.0f}",
     )
 
@@ -235,7 +258,7 @@ with overview_tab:
 with backtest_tab:
     st.subheader("Historical VaR backtest")
     st.caption(
-        f"Confidence: {backtest_confidence:.0%} | "
+        f"Confidence: {format_confidence(backtest_confidence)} | "
         f"Rolling lookback: {int(lookback)} observations | "
         "VaR uses prior observations only."
     )
@@ -261,7 +284,7 @@ with backtest_tab:
             x=backtest_df["date"],
             y=backtest_df["var_threshold_pnl_usd"],
             mode="lines",
-            name=f"{backtest_confidence:.0%} VaR loss threshold",
+            name=f"{format_confidence(backtest_confidence)} VaR loss threshold",
             line={"dash": "dash"},
         )
     )
