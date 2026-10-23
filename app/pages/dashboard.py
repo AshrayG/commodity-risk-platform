@@ -205,11 +205,11 @@ conditional_coverage = conditional_coverage_test(
 # -----------------------------
 overview_tab, backtest_tab, attribution_tab, stress_tab, data_tab = st.tabs(
     [
-        "Portfolio overview",
-        "VaR backtesting",
-        "Asset attribution",
-        "Stress testing",
-        "Data & exports",
+        "Overview",
+        "VaR backtest",
+        "Attribution",
+        "Stress test",
+        "Exports",
     ]
 )
 
@@ -271,7 +271,7 @@ with overview_tab:
         pnl_frame,
         x="date",
         y="cumulative_pnl_usd",
-        title="Cumulative P&L from the beginning of the sample",
+        title="Cumulative P&L",
         labels={
             "date": "Date",
             "cumulative_pnl_usd": "Cumulative P&L (USD)",
@@ -348,7 +348,7 @@ with backtest_tab:
         )
     )
     fig_backtest.update_layout(
-        title="Actual P&L versus the rolling VaR threshold",
+        title="P&L vs. rolling VaR",
         xaxis_title="Date",
         yaxis_title="P&L (USD)",
         hovermode="x unified",

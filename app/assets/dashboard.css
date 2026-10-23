@@ -245,3 +245,34 @@ button[kind="primary"] {
     min-width: 100% !important;
   }
 }
+
+
+/* Phone-sized layout: give every section tab its own readable space. */
+@media (max-width: 540px) {
+  [data-testid="stTabs"] [role="tablist"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem !important;
+    overflow: visible;
+    border-bottom: 0;
+  }
+
+  [data-testid="stTabs"] button[role="tab"] {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.55rem 0.4rem;
+    border: 1px solid #dce3eb;
+    border-radius: 9px;
+    font-size: 0.78rem;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+    background: #eaf5f4;
+    border-color: #117c83;
+  }
+}
