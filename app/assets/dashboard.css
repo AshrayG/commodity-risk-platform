@@ -1,0 +1,145 @@
+:root {
+  color-scheme: light;
+}
+
+.stApp,
+[data-testid="stAppViewContainer"] {
+  background: #f6f8fb;
+  color: #24364b;
+}
+
+[data-testid="stHeader"] {
+  background: rgba(246, 248, 251, 0.92);
+}
+
+.block-container {
+  max-width: 1680px;
+  padding: 2rem 2.25rem 3rem;
+}
+
+h1 {
+  color: #172b4d;
+  font-size: 2.45rem;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  padding-bottom: 0.2rem;
+}
+
+h2,
+h3 {
+  color: #20364f;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+[data-testid="stSidebar"] {
+  background: #eef2f7;
+  border-right: 1px solid #dce3eb;
+}
+
+[data-testid="stSidebar"] > div:first-child {
+  background: #eef2f7;
+}
+
+[data-testid="stSidebar"] h2 {
+  color: #172b4d;
+  font-size: 1.15rem;
+}
+
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+  color: #718096;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+[data-testid="stMetric"] {
+  min-height: 102px;
+  padding: 1rem 1.15rem;
+  background: #fff;
+  border: 1px solid #e1e7ee;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(25, 43, 67, 0.045);
+}
+
+[data-testid="stMetricLabel"] p {
+  color: #718096;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+[data-testid="stMetricValue"] {
+  color: #172b4d;
+  font-size: 1.8rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+[data-testid="stTabs"] [role="tablist"] {
+  gap: 0.35rem;
+  border-bottom: 1px solid #dce3eb;
+}
+
+[data-testid="stTabs"] button[role="tab"] {
+  padding: 0.8rem 0.95rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+  color: #117c83;
+  border-bottom-color: #117c83;
+}
+
+[data-testid="stPlotlyChart"] {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e1e7ee;
+  border-radius: 15px;
+  box-shadow: 0 3px 12px rgba(25, 43, 67, 0.04);
+}
+
+[data-testid="stDataFrame"] {
+  overflow: hidden;
+  border: 1px solid #e1e7ee;
+  border-radius: 12px;
+}
+
+[data-testid="stExpander"] {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e1e7ee;
+  border-radius: 12px;
+}
+
+[data-testid="stAlert"] {
+  border-radius: 12px;
+}
+
+[data-testid="stNumberInput"] input,
+[data-testid="stSelectbox"] [data-baseweb="select"] > div {
+  border-color: #d6dee8;
+  border-radius: 9px;
+  background: #fff;
+}
+
+[data-testid="stNumberInput"] input:focus,
+[data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within {
+  border-color: #117c83;
+  box-shadow: 0 0 0 1px #117c83;
+}
+
+button[kind="secondary"],
+button[kind="primary"] {
+  border-radius: 9px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .block-container {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  h1 {
+    font-size: 1.9rem;
+  }
+}

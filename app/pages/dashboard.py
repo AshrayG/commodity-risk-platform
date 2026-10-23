@@ -35,10 +35,33 @@ def format_confidence(confidence: float) -> str:
     return f"{confidence * 100:g}%"
 
 
+def style_chart(fig):
+    """Apply the dashboard's shared Plotly styling."""
+    fig.update_layout(
+        template="plotly_white",
+        colorway=["#117C83", "#4F6B8A", "#D58A45", "#805AD5", "#C65D67"],
+        paper_bgcolor="rgba(0, 0, 0, 0)",
+        plot_bgcolor="rgba(255, 255, 255, 0.72)",
+        font={"family": "Inter, Segoe UI, sans-serif", "size": 12, "color": "#526174"},
+        title={"font": {"size": 17, "color": "#172B4D"}, "x": 0.02, "xanchor": "left"},
+        margin={"l": 40, "r": 24, "t": 58, "b": 38},
+        hoverlabel={"bgcolor": "#172B4D", "font": {"color": "#FFFFFF"}},
+    )
+    fig.update_xaxes(showgrid=False, zeroline=False, linecolor="#DCE3EA")
+    fig.update_yaxes(gridcolor="#E8EDF2", zerolinecolor="#CCD5DF")
+    return fig
+
+
 st.set_page_config(
     page_title="Commodity Risk Platform",
     page_icon="📊",
     layout="wide",
+)
+
+style_path = ROOT / "app" / "assets" / "dashboard.css"
+st.markdown(
+    f"<style>{style_path.read_text(encoding='utf-8')}</style>",
+    unsafe_allow_html=True,
 )
 
 st.title("Commodity Risk Platform")
@@ -138,6 +161,9 @@ portfolio_pnl = build_portfolio_pnl(returns, positions)
 portfolio_risk = historical_var_es(portfolio_pnl, confidence)
 var_95 = historical_var_es(portfolio_pnl, 0.95)
 var_99 = historical_var_es(portfolio_pnl, 0.99)
+es_tail_observations = int(
+    ((-portfolio_pnl) >= portfolio_risk["var_usd"]).sum()
+)
 
 gross_notional = sum(abs(value) for value in positions.values())
 net_notional = sum(positions.values())
@@ -195,9 +221,9 @@ with overview_tab:
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric(
-    "Active products",
-    sum(value != 0 for value in positions.values()),
-)
+        "Active products",
+        sum(value != 0 for value in positions.values()),
+    )
 
     c2.metric("Gross notional", f"${gross_notional:,.0f}")
     c3.metric("Net notional", f"${net_notional:,.0f}")
@@ -215,6 +241,12 @@ with overview_tab:
         "VaR and Expected Shortfall are positive loss estimates calculated from "
         "historical portfolio P&L. They are not maximum-loss guarantees."
     )
+    st.caption(
+        f"The {format_confidence(confidence)} Expected Shortfall averages "
+        f"{es_tail_observations:,} historical tail observations out of "
+        f"{portfolio_risk['observations']:,}. Ties at the VaR cutoff can add "
+        "observations to the tail."
+    )
 
     pnl_frame = portfolio_pnl.rename("daily_pnl_usd").reset_index()
     pnl_frame.columns = ["date", "daily_pnl_usd"]
@@ -231,6 +263,7 @@ with overview_tab:
         labels={"date": "Date", "daily_pnl_usd": "Daily P&L (USD)"},
     )
     fig_pnl.add_hline(y=0, line_dash="dash")
+    style_chart(fig_pnl)
     st.plotly_chart(fig_pnl, width="stretch")
 
     st.subheader("Cumulative hypothetical P&L")
@@ -245,6 +278,7 @@ with overview_tab:
         },
     )
     fig_cumulative.add_hline(y=0, line_dash="dash")
+    style_chart(fig_cumulative)
     st.plotly_chart(fig_cumulative, width="stretch")
 
     st.caption(
@@ -268,6 +302,20 @@ with backtest_tab:
     b2.metric("VaR breaches", f"{summary['breaches']:,}")
     b3.metric("Observed breach rate", f"{summary['breach_rate']:.2%}")
     b4.metric("Expected breach rate", f"{summary['expected_breach_rate']:.2%}")
+
+    nominal_tail_observations = int(lookback) * (1 - backtest_confidence)
+    st.caption(
+        f"At this setting, the nominal tail is about "
+        f"{nominal_tail_observations:.2f} observations in each "
+        f"{int(lookback):,}-observation VaR window."
+    )
+    if nominal_tail_observations < 5:
+        st.warning(
+            "This confidence/lookback combination leaves fewer than 5 nominal "
+            "tail observations per VaR window. The historical threshold is "
+            "coarse and can change in jumps; consider a longer lookback or a "
+            "lower confidence level."
+        )
 
     # P&L is plotted against a negative VaR threshold.
     fig_backtest = go.Figure()
@@ -305,6 +353,7 @@ with backtest_tab:
         yaxis_title="P&L (USD)",
         hovermode="x unified",
     )
+    style_chart(fig_backtest)
     st.plotly_chart(fig_backtest, width="stretch")
 
     st.subheader("Statistical validation tests")
@@ -322,26 +371,6 @@ with backtest_tab:
     diagnostics_df = pd.DataFrame(diagnostic_rows)
     st.dataframe(diagnostics_df, width="stretch", hide_index=True)
 
-    if (
-        christoffersen.get("reject_at_5_percent", False)
-        or conditional_coverage.get("reject_at_5_percent", False)
-    ):
-        st.warning(
-            "At least one backtesting test rejects its null hypothesis at the 5% "
-            "level. Investigate breach clustering and model calibration before "
-            "treating the VaR estimates as validated."
-        )
-    elif kupiec.get("reject_at_5_percent", False):
-        st.warning(
-            "The Kupiec test rejects the expected breach frequency at the 5% level."
-        )
-    else:
-        st.info(
-            "The displayed tests did not reject at the 5% level. "
-            "This alone does not establish that the model is adequate."
-        )
-
-    st.subheader("Breach details")
     breach_columns = [
         "date",
         "actual_pnl_usd",
@@ -354,6 +383,40 @@ with backtest_tab:
     breach_table["excess_loss_usd"] = (
         -breach_table["actual_pnl_usd"] - breach_table["var_loss_usd"]
     )
+
+    st.subheader("Consecutive breach runs")
+    st.caption(
+        "Runs contain breaches on adjacent backtest observations. "
+        "Isolated breaches are not listed here."
+    )
+    breach_mask = backtest_df["breach"].astype(bool)
+    run_ids = (~breach_mask).cumsum()
+    breach_rows = backtest_df.loc[breach_mask].copy()
+    breach_rows["run_id"] = run_ids.loc[breach_mask]
+
+    run_records = []
+    for _, run in breach_rows.groupby("run_id", sort=False):
+        if len(run) < 2:
+            continue
+        excess_loss = -run["actual_pnl_usd"] - run["var_loss_usd"]
+        run_records.append(
+            {
+                "first_breach_date": run["date"].iloc[0],
+                "last_breach_date": run["date"].iloc[-1],
+                "breach_observations": len(run),
+                "total_excess_loss_usd": excess_loss.sum(),
+                "largest_excess_loss_usd": excess_loss.max(),
+            }
+        )
+
+    if run_records:
+        st.dataframe(
+            pd.DataFrame(run_records), width="stretch", hide_index=True
+        )
+    else:
+        st.info("No back-to-back breach observations in this run.")
+
+    st.subheader("Breach details")
     st.dataframe(breach_table, width="stretch", hide_index=True)
 
     st.download_button(
@@ -386,6 +449,7 @@ with attribution_tab:
             "gross_notional_usd": "Gross notional (USD)",
         },
     )
+    style_chart(fig_exposure)
     st.plotly_chart(fig_exposure, width="stretch")
 
     fig_var = px.bar(
@@ -398,6 +462,7 @@ with attribution_tab:
             "standalone_var_99_usd": "Standalone VaR (USD)",
         },
     )
+    style_chart(fig_var)
     st.plotly_chart(fig_var, width="stretch")
 
     st.subheader("Historical return correlations")
@@ -411,6 +476,7 @@ with attribution_tab:
         color_continuous_scale="RdBu",
         title="Correlation of aligned daily returns",
     )
+    style_chart(fig_corr)
     st.plotly_chart(fig_corr, width="stretch")
 
     st.download_button(
@@ -467,6 +533,7 @@ with stress_tab:
         },
     )
     fig_stress.add_hline(y=0, line_dash="dash")
+    style_chart(fig_stress)
     st.plotly_chart(fig_stress, width="stretch")
 
     st.subheader("Instrument-level stress impact")
@@ -484,6 +551,7 @@ with stress_tab:
         },
     )
     fig_detail.add_hline(y=0, line_dash="dash")
+    style_chart(fig_detail)
     st.plotly_chart(fig_detail, width="stretch")
 
     st.dataframe(detail_df, width="stretch", hide_index=True)
@@ -530,11 +598,9 @@ with data_tab:
         mime="text/csv",
     )
 
-    st.info(
-        "Crypto trades on weekends while most commodity markets do not. "
-        "This dashboard uses the existing aligned returns dataset, so weekend "
-        "crypto price moves may not be fully represented. A calendar-aware "
-        "portfolio alignment is a future improvement."
+    st.caption(
+        "Calendar alignment: commodity closes carry across market closures; "
+        "observed BTC and ETH weekend prices are retained."
     )
 
 st.divider()
