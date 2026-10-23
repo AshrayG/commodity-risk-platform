@@ -135,11 +135,113 @@ button[kind="primary"] {
 }
 
 @media (max-width: 768px) {
+  html,
+  body,
+  [data-testid="stAppViewContainer"],
+  [data-testid="stMain"] {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   .block-container {
-    padding: 1.25rem 1rem 2rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 1.25rem 0.9rem 2rem;
   }
 
   h1 {
-    font-size: 1.9rem;
+    font-size: clamp(1.65rem, 7vw, 1.9rem);
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+    line-height: 1.25;
+  }
+
+  /* Keep the five dashboard sections on one scrollable row on phones. */
+  [data-testid="stTabs"] [role="tablist"] {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 0.2rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  [data-testid="stTabs"] button[role="tab"] {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.84rem;
+    white-space: nowrap;
+  }
+
+  /* Metric rows become two columns instead of squeezing desktop cards. */
+  [data-testid="stHorizontalBlock"] {
+    flex-wrap: wrap !important;
+    align-items: stretch;
+    gap: 0.65rem !important;
+  }
+
+  [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+    flex: 1 1 calc(50% - 0.4rem) !important;
+    width: calc(50% - 0.4rem) !important;
+    min-width: calc(50% - 0.4rem) !important;
+  }
+
+  [data-testid="stMetric"] {
+    min-height: 88px;
+    padding: 0.8rem;
+    border-radius: 12px;
+  }
+
+  [data-testid="stMetricLabel"] p {
+    font-size: 0.78rem;
+    line-height: 1.3;
+  }
+
+  [data-testid="stMetricValue"] {
+    font-size: clamp(1.2rem, 5.2vw, 1.55rem);
+    overflow-wrap: anywhere;
+  }
+
+  /* Charts and tables should stay inside the viewport and support touch. */
+  [data-testid="stPlotlyChart"],
+  [data-testid="stDataFrame"] {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  [data-testid="stDataFrame"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  [data-testid="stDownloadButton"] button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  [data-testid="stNumberInput"] input,
+  [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 380px) {
+  .block-container {
+    padding-right: 0.7rem;
+    padding-left: 0.7rem;
+  }
+
+  [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+    flex-basis: 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
   }
 }
