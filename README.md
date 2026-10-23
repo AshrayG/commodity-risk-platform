@@ -2,6 +2,10 @@
 
 A Python and Streamlit research dashboard for exploring historical portfolio risk across commodity proxies and crypto assets. It calculates hypothetical P&L from signed USD notionals and historical returns; it does not place trades or represent live positions.
 
+## Live demo
+
+Open the hosted dashboard: [commodityriskplatform.streamlit.app](https://commodityriskplatform.streamlit.app/).
+
 ## What it does
 
 - Shows portfolio exposure, historical daily P&L, volatility, and historical Value at Risk (VaR) and Expected Shortfall (ES).
@@ -56,13 +60,9 @@ The rolling VaR backtest uses only earlier observations to set each day's thresh
 
 The dashboard currently reads the aligned CSV directly. SQLite is a separate data-storage and learning component; the interactive dashboard is not yet querying the database. See [the interview guide](docs/interview_guide.md) for a walkthrough and a clear explanation of this distinction.
 
-## Publish with Streamlit Community Cloud
+## Hosting
 
-1. Push this repository to GitHub.
-2. In [Streamlit Community Cloud](https://share.streamlit.io/), create an app using repository `AshrayG/commodity-risk-platform`, branch `master`, and entrypoint `app/pages/dashboard.py`.
-3. In Advanced settings, choose Python 3.15 to match the local environment, then deploy.
-
-The app needs no API key or secrets to run because its historical input is committed with the project. Community Cloud installs the packages from the root `requirements.txt` and reads the theme in `.streamlit/config.toml`.
+The app is hosted on [Streamlit Community Cloud](https://share.streamlit.io/) from the `master` branch, using `app/pages/dashboard.py` as its entrypoint. The app needs no API key or secrets to run because its historical input is committed with the project. Community Cloud installs the packages from the root `requirements.txt` and reads the theme in `.streamlit/config.toml`.
 
 ## Scope and limitations
 
